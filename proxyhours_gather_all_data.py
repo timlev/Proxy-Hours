@@ -12,14 +12,16 @@ except:
 	pass
 
 #Change this to your PDF Reports folder
-pdf_search_dir = "/cygdrive/c/Users/levtim/Dropbox/CollegeReadiness/Reports"
+pdf_search_dir = "/home/levtim/Dropbox/scans/CollegeReadiness/Reports/"
 
 #Tries to open a file from command line arguments
 pdffile = "".join(argv[1:])
-#pdffile = '/home/levtim/Desktop/all_skillstutor_data.pdf'
+#TESTING: pdffile = '/home/levtim/Desktop/all_skillstutor_data.pdf'
+
 if pdffile == "":
 	print(call(["find", pdf_search_dir,"-iname", "*.pdf"]))
 	pdffile = input("Oops, you forgot to add a PDF file.\nEnter the exact location of a PDF file after the command:\n This should start with /cygdrive/c/ and use / instead of \ between folders.\n")
+
 pdfdir = pdffile[0:pdffile.rfind("/")]+"/"
 pdffilename = pdffile[pdffile.rfind("/")+1::]
 pdfhtml = pdffilename[0:-4] +"s.html"
@@ -53,20 +55,24 @@ for line in document:
 	newdocument += line.replace("   ","")
 #print(newdocument)
 
-#Split document by Page 1
+#Split document by Page 1 (each student has only one Page 1)
 newdocument = newdocument.split('Page 1\n')
 
 allpages = []
+
 #Split by newlines and create list of lists of lines
 for page in newdocument:
 	allpages.append(page.split('\n'))
-allpages = allpages[1:-1] #Strips empty first chunk and students with no hours
 
-#print(allpages[0])
+#Strips empty first chunk and students with no hours
+allpages = allpages[1:-1]
+
+#TESTING: print(allpages[0])
 
 def findusername(page):
 	username = page[page.index("User Name:")+1]
 	return username
+
 def findstudentname(page):
 	studentname = page[page.index("Student:")+1]
 	return studentname
@@ -74,27 +80,33 @@ def findstudentname(page):
 def hasletters(line):
 	return any(c.isalpha() for c in line)
 
+#IMPORTANT Global Variables
 totalproxyhours = 0.0
 dataresultslist = [["Date","Time","Username","Student Name", "Subject","Section","Lesson", "Score","Percent","Time Spent"]]
 proxyhourreport = [["Username","Student Name","Proxy Hours"]]
 logfilelist = []
-#updated 8/20/2013
+#updated 8/20/2013 from myskillstutor.com
 possibletitles = ["Beginning Language Arts","Beginning Math","Language Arts A","Language Arts B","Language Arts C","Reading Comprehension LL","Reading Comprehension A","Reading Comprehension B","Reading Comprehension C","Reading Vocabulary A","Reading Vocabulary B","Reading Vocabulary C","Reading","Writing","Language","Math A","Math B","Math C","Basic Mathematics","Intermediate Mathematics","Algebra","Algebra II (updated)","Algebra II","Science I","Science II","Information Skills","Workforce Readiness Skills"]
-def gatherdata(page):
+
+def gatherdata(page): #Main Function
 	global totalproxyhours
 	validactivities = []
+	
 	#remove footer and header chunks
 	while page.count("(min)") > 1: #if there is more than one page, remove footer and header in between pages
 		footerstart = page.index("Average score(%) is for completed activities, excluding pretests and")
 		headerend = page.index("(min)", footerstart)+1
 		page = page[:footerstart]+ page[headerend:]
+	
 	#remove (Average=
 	page = [line for line in page if "(Average=" not in line]
-	#print page
+	
+	#TESTING:print page
 	enu = enumerate(page) #enumerates page as reference point
 	enu = [num for num in enu if ":" in num[1] and num[1].count("-") == 2 and ("AM" in num[1] or "PM" in num[1])] #finds all timestamps, looking for "-" "-" and ":" surrounded by numbers
 	activities = []
-	#this finds the section the lesson is in so as not to eliminate duplicate lesson names found in different sections/classses
+	
+	#Finds the title and section the lesson is in so as not to eliminate duplicate lesson names found in different sections/titles
 	for pos, timestamp in enu: #for every timestamp index and every timestamp
 		date = page[pos][:page[pos].index(" ")]
 		time = page[pos][page[pos].index(" "):]
@@ -106,6 +118,7 @@ def gatherdata(page):
 		else:
 			 percent = "Incomplete"
 			 timespent = ""
+		#Fixing Errors
 		if page[pos-1].isdigit() or page[pos-1] == "Incomplete": #if item before timestamp is a number, PDF is broken
 			logfilelist.append(str("item before timestamp is a number or Incomplete. Fixing ..."+ str(page[pos-1:pos+5])))
 			lesson = page[pos+3]
@@ -114,6 +127,8 @@ def gatherdata(page):
 			logfilelist.append(str("There is a lesson in the percent column. Fixing ..."+str(page[pos+3])))
 			lesson = page[pos+3]
 			timespent = page[pos+4]
+		
+		#Finding Title
 		title = ""
 		gobackindex = 0
 		test_title = False
@@ -125,30 +140,37 @@ def gatherdata(page):
 				title = try_line_string
 				test_title = True
 			gobackindex += 1
+		
+		#Finding Section
 		section = ""
 		gobackindex = 0 #go back until you find text that != "Incomplete' and doesn't have AM or PM in the next line
 		while "AM" in section or "PM" in section or "AM" in page[pos-gobackindex+1] or "PM" in page[pos-gobackindex+1] or "AM" in page[pos-gobackindex-1] or "PM" in page[pos-gobackindex-1] or "/" in page[pos-gobackindex-1] or "/" in section or "Incomplete" in section or len(set(section) & set(letters))==0 or "%" in section or "(min" in section or ("Time" == section and "(min" == page[pos-gobackindex+1]) or ("Score" == section and "Time" == page[pos-gobackindex+1]): #keep going until none of these are in the section
 			gobackindex += 1
 			section = page[pos-gobackindex]
 		activity_and_section = str(title) + " : " + str(section) + " : " + str(lesson)
+		
 		def is_valid_score(timestamp_pos):
 			if percent != "Incomplete" and ("Pretest" in lesson or "pretest" in lesson or int(percent) >= 70):
 				return True
 			else:
 				return False
+		
 		if is_valid_score(pos):
 			validactivities.append(activity_and_section)
 		dataresultslist.append([date,time,findusername(page),findstudentname(page),title, section, lesson,str('"'+score+'"'), percent,timespent])
+	
 	proxyhours = len(set(validactivities)) * 0.5
 	#print "Proxy hours: " + str(proxyhours)
 	if proxyhours > 0.0:
 		proxyhourreport.append([findusername(page),findstudentname(page), str(proxyhours)])
 	totalproxyhours += proxyhours
 
+#Main Function Executing
 for page in allpages:
 	gatherdata(page)
 
 print "\n\n"
+
 #print proxy hours report
 with open(str(pdffile[:-4] + "_log" + ".csv"), 'wb') as csvfile: #writes the output from above to a csv file with the same stem name as pdf file
 	resultswriter = writer(csvfile, dialect='excel')
@@ -160,7 +182,8 @@ print "Written to:",str(pdffile[:-4] + "_log" + ".csv")
 print "Total Proxy Hours for",pdffile[:-4],":", totalproxyhours
 
 print "\n\n"
-#print all data
+
+#print all data log
 try:
 	with open(str(pdffile[:-4] + "_alldata_log" + ".csv"), 'wb') as csvfile: #writes the output from above to a csv file with the same stem name as pdf file
 		resultswriter = writer(csvfile, dialect='excel')
