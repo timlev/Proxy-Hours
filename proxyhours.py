@@ -147,12 +147,12 @@ def createscoreindex(page):
 
 for page in allpages:
 	createscoreindex(page)
-with open(str(pdffile[:-4] + "_log" + ".csv"), 'wb') as csvfile: #writes the output from above to a csv file with the same stem name as pdf file
+with open(str(pdffile[:-4] + "_log_oldreport" + ".csv"), 'wb') as csvfile: #writes the output from above to a csv file with the same stem name as pdf file
 	resultswriter = csv.writer(csvfile, dialect='excel')
 	for row in resultslist:
 		resultswriter.writerow(row)
 
-print "Written to:",str(pdffile[:-4] + "_log" + ".csv")
+print "Written to:",str(pdffile[:-4] + "_log_oldreport" + ".csv")
 print "Total Proxy Hours for",pdffile[:-4],":", totalproxyhours
 
 print "This version no longer removes pretests and lessons in different sections that share the same name."
@@ -163,3 +163,5 @@ print "List of Lessons:", listoflessons
 """
 
 print "Time for script:",str(datetime.now() - startTime)
+
+print "This is depricated. Use proxyhours_gather_all_data.py instead to correctly deal with PDF mistakes."
