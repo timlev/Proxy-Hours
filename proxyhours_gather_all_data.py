@@ -4,23 +4,25 @@ PROXY = {}
 PROXY = {}
 #qpy:api
 PROXY = {}
+from datetime import datetime
+startTime = datetime.now()
+
 import sys
 import subprocess
 import glob
 import string
-from datetime import datetime
+
 try:
 	import csv
 except:
 	pass
-startTime = datetime.now()
 
 #Change this to your PDF Reports folder
 pdf_search_dir = "/cygdrive/c/Users/levtim/Dropbox/CollegeReadiness/Reports"
 
 #Tries to open a file from command line arguments
 pdffile = "".join(sys.argv[1:])
-#TESTING: pdffile = '/home/levtim/Desktop/all_skillstutor_data.pdf'
+pdffile = '/home/levtim/Desktop/all_skillstutor_data.pdf'
 if pdffile == "":
 	print(subprocess.call(["find", pdf_search_dir,"-iname", "*.pdf"]))
 	pdffile = input("Oops, you forgot to add a PDF file.\nEnter the exact location of a PDF file after the command:\n This should start with /cygdrive/c/ and use / instead of \ between folders.\n")
@@ -46,11 +48,11 @@ with open(pdffile,'r') as txtfile:
 htmlfiles = glob.glob(pdffile[:-4]+"*.html")
 txtfiles = glob.glob(pdffile[:-4]+"*.txt")
 #removes html and txt files, leaving pdf file
-"""for doc in htmlfiles:
+for doc in htmlfiles:
 	subprocess.call(["rm",doc])
 for doc in txtfiles:
 	subprocess.call(["rm",doc])
-"""
+
 
 newdocument = ""
 for line in document:
@@ -88,7 +90,7 @@ def is_valid_score(timestamp_pos):
 		return False
 
 totalproxyhours = 0.0
-dataresultslist = [["Date","Time","Username","Student Name", "Subject","Section","Lesson", "Score","Percent","Time Spent"]]
+dataresultslist = [["Date","Username","Student Name", "Subject","Section","Lesson", "Score","Percent","Time Spent"]]
 proxyhourreport = [["Username","Student Name","Proxy Hours"]]
 possibletitles = ["Beginning Language Arts","Beginning Math","Language Arts A","Language Arts B","Language Arts C","Reading Comprehension LL","Reading Comprehension A","Reading Comprehension B","Reading Comprehension C","Reading Vocabulary A","Reading Vocabulary B","Reading Vocabulary C","Reading","Writing","Language","Math A","Math B","Math C","Basic Mathematics","Intermediate Mathematics","Algebra","Algebra II (updated)","Algebra II","Science I","Science II","Information Skills","Workforce Readiness Skills"]
 def gatherdata(page):
@@ -154,7 +156,7 @@ def gatherdata(page):
 				return False
 		if is_valid_score(pos):
 			validactivities.append(activity_and_section)
-		dataresultslist.append([date,time,findusername(page),findstudentname(page),title, section, lesson,str('"'+score+'"'), percent,timespent])
+		dataresultslist.append([date.replace("-","/")+time,findusername(page),findstudentname(page),title, section, lesson,str('"'+score+'"'), percent,timespent])
 	proxyhours = len(set(validactivities)) * 0.5
 	#print "Proxy hours: " + str(proxyhours)
 	if proxyhours > 0.0:
