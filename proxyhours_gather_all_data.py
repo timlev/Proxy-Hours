@@ -48,7 +48,10 @@ def proxy_hours(filename):
 	csvf = pdffilename[0:pdffilename.rindex(".pdf")] +".csv"
 	pdffile = csvf
 	#Convert to HTML
-	call(startdir + 'pdftohtml.exe"' + ' -q "' + pdffilename +'"',shell=True)
+        if os.name == 'posix':
+            call('pdftohtml -q "' + pdffilename +'"',shell=True)
+        else:
+            call(startdir + 'pdftohtml.exe" -q "' + pdffilename + '"',shell=True)
 
 	print("Finished PDF to HTML Conversion")
 
@@ -70,7 +73,10 @@ def proxy_hours(filename):
 	newdocument = "\n".join(list_of_lines)
 	
 	#Split document by Page 1 (each student has only one Page 1)
-	newdocument = newdocument.split('Page 1\n')
+        if newdocument.find("Page1\n") > newdocument.find("Page 1\n"):
+            newdocument = newdocument.split('Page1\n')
+        else:
+            newdocument = newdocument.split('Page 1\n')
 
 	allpages = []
 
