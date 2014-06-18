@@ -1,12 +1,35 @@
 #!/usr/bin/python
 
 import Proxy_Hours, proxyhours_gather_all_data
-from PyQt4 import QtCore, QtGui
+try:
+    from PyQt4 import QtCore, QtGui
+    qtplatform = "PyQt4"
+except:
+    from PySide import QtCore, QtGui
+    qtplatform = "PySide"
+
+import os
+
+def which(pgm):
+    path=os.getenv('PATH')
+    for p in path.split(os.path.pathsep):
+        p=os.path.join(p,pgm)
+        if os.path.exists(p) and os.access(p,os.X_OK):
+            return p
+
+
+os.which=which
+print os.which("pdftohtml")
 
 def selectFile():
 	name = QtGui.QFileDialog.getOpenFileName()
+	if qtplatform == "PySide":
+		name = name[0]
+	print name
 	ui.FilelineEdit.setText(name)
 	nametxt = str(ui.FilelineEdit.text())
+	nametxt = os.path.abspath(nametxt)
+	print "Nametxt:", nametxt
 	write_out_0, write_out_1, write_out_2, write_out_3 = proxyhours_gather_all_data.proxy_hours(nametxt)
 	ui.log_lineEdit.setText(write_out_1)
 	ui.all_data_lineEdit.setText(write_out_2)

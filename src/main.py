@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 import Proxy_Hours, proxyhours_gather_all_data
-from PyQt4 import QtCore, QtGui
+from PySide import QtCore, QtGui
 
 def selectFile():
 	name = QtGui.QFileDialog.getOpenFileName()

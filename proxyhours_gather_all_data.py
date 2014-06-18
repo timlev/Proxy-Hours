@@ -30,7 +30,7 @@ def proxy_hours(filename):
 	print startdir
 	goback = os.path.abspath(startdir)
 	startdir = startdir.replace('\\','/')
-	startdir = '"' + startdir + "/"
+	startdir = '"' + startdir + "/" #for Windows pdftohtml.exe command
 	print startdir
 	#filename = filename.encode('string-escape')
 	#pdffilename = os.path.basename(filename)
